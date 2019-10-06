@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script>
+ class TestController {
+    constructor(url) {
+        this.url = url;
+
+    }
+
+    implementado(url="",metodo) {
+        return new Promise(resolve => {
+            fetch(`${this.url}${url}`, {
+                method: "OPTIONS"
+            }).then((resposta) =>
+                resolve(
+                    resposta
+                    &&resposta.headers
+                    &&resposta.headers.get("allow")
+                    &&resposta.headers.get("allow").indexOf(metodo)!=-1));
+        });
+
+        
+
+    }
+    testar(envio) {
+        return new Promise(resolve => {
+            if (!envio.param)
+                envio.param = "";
+            if (!envio.conteudo)
+                envio.conteudo = {};
+            fetch(`${this.url}${envio.param}`, {
+                method: envio.metodo,
+                headers: new Headers({
+                    'Content-Type': 'application/json'
+                }),
+                body: envio.metodo == "GET" ? null : JSON.stringify(envio.conteudo)
+            }).then((resposta) =>
+                resposta.json().then(
+                    (retorno) => {
+                        resolve({ ...envio, url: `${this.url}${envio.param}`, status: resposta.status, retorno });
+                    }
+                ).catch((erro) => resolve({ ...envio, erro: erro, url: `${this.url}${envio.param}`, status: resposta.status, retorno: {} }))
+            );
+        });
+
+    }
+
+
+
+}
+
+
+            function fechar() {
+                    base.innerHTML+="<hr/>";
+            }
+            window.nota={};
+            function naoImplementado(url, metodo) {
+                base.innerHTML+=`<div style='color:red'>API ${url} método ${metodo} não implementada</div>`;
+            }
+            function verificarErro(codigo,resposta, msg, grupo, nota, posicao) {
+                let teste=false;
+                let reposta;
+                if(resposta
+                    &&resposta.retorno
+                    &&resposta.retorno.message
+                    &&resposta.retorno.message.startsWith
+                    &&resposta.retorno.message.startsWith(codigo+"-:-")) {
+                        teste=true;
+                } else {
+                    if(resposta.status>=500) 
+                        reposta="Erro interno do servidor, revisar o código";
+                    else if(resposta.status<400)
+                        reposta="Execução bem sucedida onde um erro é esperado";
+                    else if(resposta
+                    &&resposta.retorno
+                    &&resposta.retorno.message
+                    &&resposta.retorno.message.indexOf("-:-")!=-1) {
+                        let erroRet=resposta.retorno.message.substr(0,resposta.retorno.message.indexOf("-:-"));
+                        reposta="Erro esperado "+codigo+", erro gerado "+erroRet;
+                    }
+                    else if(resposta.status==404) 
+                        reposta="API não implementada ou erro 404 gerado errado";
+                    else 
+                        reposta="Erro não utilizou a API de erro solicitada";
+                }
+
+
+            
+
+
+
+                if(teste)
+                    base.innerHTML+="<div style='color:green'>Verificação de erro executada com sucesso: "+msg+"</div>";
+                else 
+                    base.innerHTML+="<div style='color:red'>"+reposta+": "+msg+" - "+grupo+"</div>";
+                    if(!window.nota[grupo])
+                        window.nota[grupo]=[];
+                    window.nota[grupo].push({
+                    acertou:teste,
+                    peso:nota,
+                    msg
+
+                }); 
+                return teste;
+            }
+
+
+            function verificar(teste, msg, grupo, nota, posicao) {
+                if(teste)
+                    base.innerHTML+="<div style='color:green'>Verificação executada com sucesso: "+msg+"</div>";
+                else 
+                    base.innerHTML+="<div style='color:red'>Verificação executada com erro: "+msg+"</div>";
+                    if(!window.nota[grupo])
+                        window.nota[grupo]=[];
+                    window.nota[grupo].push({
+                    acertou:teste,
+                    peso:nota,
+                    msg
+
+                }); 
+                return teste;
+            }
+            function exibirErro(msg) {
+                base.innerHTML+="<div style='color:red'>"+msg+"</div>";
+            }
+
+            function exibir(resposta) {
+                base.innerHTML+="URL:"+resposta.url+"<br/>";
+                base.innerHTML+="metodo:"+resposta.metodo+"<br/>";
+                //base.innerHTML+="param:"+resposta.param+"<br/>";
+                base.innerHTML+="conteudo:"+JSON.stringify(resposta.conteudo)+"<br/>";
+                base.innerHTML+="Resposta:"+resposta.status+"<br/>";
+                base.innerHTML+=JSON.stringify(resposta.retorno)+"<br/>";
+            }
+
+            function exibirNota() {
+                let tabela="";
+                let notaFinal=0;
+                let pesoFinal=0;
+                for (const key in window.nota) {
+                    if (window.nota.hasOwnProperty(key)) {
+                        const notas = window.nota[key];
+                        
+                        let notaMaxima=0;
+                        let valorNota=0;
+                        let erros=[];
+                        let acertos=[];
+                        for (const nota of notas) {
+                            notaMaxima+=nota.peso;
+                            if(nota.acertou) {
+                                valorNota+=nota.peso;
+                                acertos.push(nota.msg);
+                            } else 
+                                erros.push(nota.msg);
+                        }
+                        notaFinal+=valorNota;
+                        pesoFinal+=notaMaxima;
+                        tabela+=`<tr><td>${key}</td>
+                            <td>${notaMaxima.toFixed(1)}</td>
+                            <td>${valorNota.toFixed(1)}</td>
+                            <td style="color:green">
+                                        ${acertos.map( val=>`<div>&#10140; ${val}</div>`).join("")}
+                                </td>
+                            <td style="color:red">
+                                    ${erros.map( val=>`<div>&#10140; ${val}</div>`).join("")}
+                                </td>
+                            </tr>`;
+                        
+                    }
+                }
+                document.getElementById("div").innerHTML=`<table border="1px">
+                    <tr><th>Item</th><th>Peso</th><th>Nota<br/>(provável)</th><th>Acertos</th><th>Erros</th></tr>
+                     ${tabela}
+                     <tr><th>Soma</th><th>${pesoFinal.toFixed(1)}</th><th>${notaFinal.toFixed(1)}</th></tr>
+                     </table>`;
+            }
+           
+        </script>
+        <script>
+
+function erro(resposta, numero) {
+    return resposta
+        && resposta.retorno
+        && resposta.retorno.message
+        && resposta.retorno.message.startsWith
+        && resposta.retorno.message.startsWith(numero + ":");
+};
+
+async function implementado(controler, url, metodo) {
+    if (await controler.implementado(url, metodo)) {
+        return true;
+    } else {
+        naoImplementado(controler.url + url, metodo);
+        return false;
+    }
+
+}
+
+async function teste(pronto) {
+    let cliente = new TestController("api/clientes/");
+
+    let idCliente = 0;
+    let resposta;
+
+    if (await implementado(cliente, "", "POST")) {
+        resposta = await cliente.testar(
+            {
+                metodo: "POST",
+                conteudo: {
+                    "nome": null,
+                    "cnpj": "10637926000146",
+                    contato: {
+                        nome: "Maria",
+                        email: "maria@exemplo.com.br"
+                    }
+
+                }
+            }
+        );
+        exibir(resposta);
+        verificarErro(1001, resposta, "Sem nome", "Cliente - Todos os campos obrigatórios (erro: 1001)", 0.1, 1001);
+        fechar();
+        resposta = await cliente.testar(
+            {
+                metodo: "POST",
+                conteudo: {
+                    "nome": "Nome",
+                    "cnpj": "10637926000146"
+                }
+            }
+        );
+        exibir(resposta);
+        verificarErro(1001, resposta, "Sem Contato", "Cliente - Todos os campos obrigatórios (erro: 1001)", 0.1, 1001);
+        fechar();
+        resposta = await cliente.testar(
+            {
+                metodo: "POST",
+                conteudo: {
+                    "nome": "Empresa SA",
+                    "cnpj": "23423",
+                    contato: {
+                        nome: "Maria",
+                        email: "maria@exemplo.com.br"
+                    }
+                }
+            }
+        );
+        exibir(resposta);
+        verificarErro(1002, resposta, "CNPJ com menos caracteres", " Cliente - CNPJ deve ter 14 caracteres (erro: 1002)", 0.2);
+        fechar();
+        resposta = await cliente.testar(
+            {
+                metodo: "POST",
+                conteudo: {
+                    "nome": "Empresa SA",
+                    "cnpj": "2343543534534423",
+                    contato: {
+                        nome: "Maria",
+                        email: "maria@exemplo.com.br"
+                    }
+                }
+            }
+        );
+        exibir(resposta);
+        verificarErro(1002, resposta, "CNPJ com mais caracteres", " Cliente - CNPJ deve ter 14 caracteres (erro: 1002)", 0.3);
+        fechar();
+        resposta = await cliente.testar(
+            {
+                metodo: "POST",
+                conteudo: {
+                    "nome": "Empresa SA",
+                    "cnpj": "10637926000146",
+                    contato: {
+                        nome: null,
+                        email: "maria@exemplo.com.br"
+                    }
+                }
+            }
+        );
+        exibir(resposta);
+        verificarErro(2001, resposta, "cadastar sem campos obrigatórios", "Contato - Todos os campos obrigatórios (erro: 2001)", 0.5);
+        fechar();
+
+        resposta = await cliente.testar(
+            {
+                metodo: "POST",
+                conteudo: {
+                    "nome": "Empresa SA",
+                    "cnpj": "10637926000146",
+                    contato: {
+                        nome: "Maria",
+                        email: "mariaexemplo.com.br"
+                    }
+                }
+            }
+        );
+        exibir(resposta);
+        verificarErro(2002, resposta, "e-mail sem @ ", "Contato - email deve conter o caractere '@' (erro: 2002)", 0.5);
+        fechar();
+
+        resposta = await cliente.testar(
+            {
+                metodo: "POST",
+                conteudo: {
+                    "nome": "Empresa SA",
+                    "cnpj": "10637926000146",
+                    contato: {
+                        nome: "Maria",
+                        email: "maria@exemplo.com.br"
+                    }
+                }
+            }
+        );
+        exibir(resposta);
+        verificar(resposta.status == 201, "Status HTTP", "Cliente - Cadastro", 0.1, 101);
+        verificar(resposta.conteudo.nome == resposta.retorno.nome
+            && resposta.conteudo.cnpj == resposta.retorno.cnpj
+            && resposta.retorno.contato
+            && resposta.conteudo.contato.nome == resposta.retorno.contato.nome
+            ,
+            "Campos cadastrados", "Cliente - Cadastro", 0.1, 101);
+        fechar();
+
+        if (!(resposta && resposta.retorno && resposta.retorno.id)) {
+            exibirErro("Sem geração de id no POST, impossível testar atualizações e recuperação");
+
+        } else {
+            id = resposta.retorno.id;
+            idCliente = id;
+
+            let conteudo = resposta.conteudo;
+
+            if (await implementado(cliente, "{id}", "GET")) {
+                resposta = await cliente.testar({ metodo: "GET", param: id });
+
+                verificar(resposta.status == 200, "Status HTTP", "Cliente - recuperar item", 0.1, 102);
+                verificar(
+                    conteudo.nome == resposta.retorno.nome
+                    && conteudo.cnpj == resposta.retorno.cnpj
+                    && conteudo.contato
+                    && conteudo.contato.nome == resposta.retorno.contato.nome
+                    , "Campos", "Cliente - recuperar item", 0.1, 102);
+                fechar();
+                if (await implementado(cliente, "{id}", "PUT")) {
+                    let update = {
+                        "nome": "Empresa SA 2",
+                        "cnpj": "10637926000146",
+                        contato: {
+                            nome: "Maria 2",
+                            email: "maria@exemplo.com.br"
+                        }
+                    };
+                    resposta = await cliente.testar({
+                        metodo: "PUT",
+                        param: id,
+                        conteudo: update
+                    });
+                    verificar(resposta.status == 204, "Status HTTP", "Cliente - atualizar item", 0.1, 103);
+                    resposta = await cliente.testar({ metodo: "GET", param: id });
+                    exibir(resposta);
+                    verificar(update.nome == resposta.retorno.nome
+                        && update.cnpj == resposta.retorno.cnpj
+                        && resposta.retorno.contato
+                        && update.contato.nome == resposta.retorno.contato.nome
+                        , "Campos", "Cliente - atualizar item", 0.1, 103);
+                    fechar();
+
+
+
+                    resposta = await cliente.testar({
+                        metodo: "PUT",
+                        param: id,
+                        conteudo: {
+                            "nome": null,
+                            "cnpj": "10637926000146",
+                            contato: {
+                                nome: "Maria",
+                                email: "maria@exemplo.com.br"
+                            }
+        
+                        }
+                    });
+
+                    exibir(resposta);
+                    verificarErro(1001, resposta, "Atualizar Sem nome", "Cliente - Todos os campos obrigatórios (erro: 1001)", 0.3, 1001);
+            
+
+
+                }
+
+            }
+            resposta = await cliente.testar({ metodo: "DELETE", param: id });
+            exibir(resposta);
+            verificar(resposta.status == 204, "Status", "Cliente - deletar item", 0.1, 104);
+            resposta = await cliente.testar({ metodo: "GET", param: id });
+            verificar(resposta.status == 404, "Item apagado", "Cliente - deletar item", 0.1, 104);
+            fechar();
+        }
+
+    } else {
+        //teste para deixar o PUT
+        await implementado(cliente, "{id}", "PUT");
+    }
+
+    if (await implementado(cliente, "", "GET")) {
+        resposta = await cliente.testar({ metodo: "GET" });
+        exibir(resposta);
+        verificar(Array.isArray(resposta.retorno)
+            , "listar", "Cliente - listar itens", 0.2, 104);
+        fechar();
+    }
+
+    /////////////////////Projeto /////////////////////////
+
+    let projeto = new TestController("api/projetos/");
+
+    let idProjeto = 0;
+    let idProjeto2 = 0;
+    resposta = await cliente.testar(
+        {
+            metodo: "POST",
+            conteudo: {
+                "nome": "Empresa SA",
+                "cnpj": "10637926000146",
+                contato: {
+                    nome: "Maria",
+                    email: "maria@exemplo.com.br"
+                }
+            }
+        }
+    );
+    //exibir(resposta);
+    let clienteObj = resposta.retorno;
+    if (!clienteObj || !clienteObj.id) {
+        exibirErro("Sem geração de id no POST do cliente, impossível testar operações do projeto");
+    } else if (await implementado(projeto, "", "POST")) {
+
+        resposta = await projeto.testar(
+            {
+                metodo: "POST",
+                conteudo: {
+                    "nome": "",
+                    "linguagem": null,
+                    "horasPrevistas": 10,
+                    "horasExecutadas": 0,
+                    "cliente": clienteObj
+                }
+            }
+        );
+        exibir(resposta);
+        verificarErro(3001, resposta, "Cadastrar campos em branco", "Projeto - Nome, linguagem e horas previstas são obrigatórios (erro: 3001)", 0.2, 3002);
+        fechar();
+
+        resposta = await projeto.testar(
+            {
+                metodo: "POST",
+                conteudo: {
+                    "nome": "Projeto teste",
+                    "linguagem": "java",
+                    "horasPrevistas": 10,
+                    "horasExecutadas": 10,
+                    "cliente": clienteObj
+                }
+            }
+        );
+        exibir(resposta);
+        verificarErro(3002, resposta, "Horas executadas diferentes de zero", "Horas executadas não podem ser definidas pelo cliente, gerar erro caso seja diferente de 0 (erro: 3002)", 0.2, 3002);
+        fechar();
+
+        resposta = await projeto.testar(
+            {
+                metodo: "POST",
+                conteudo: {
+                    "nome": "Projeto teste",
+                    "linguagem": "y",
+                    "horasPrevistas": 10,
+                    "horasExecutadas": 0,
+                    "cliente": clienteObj
+                }
+            }
+        );
+        exibir(resposta);
+        verificarErro(3003, resposta, "Linguagem diferente da lista", "Linguagem só pode aceitar os valores: java, c, python, javascript, php, objective-c, delphi, go, visual basic ou kotlin (erro: 3003)", 0.5, 3003);
+        fechar();
+
+        resposta = await projeto.testar(
+            {
+                metodo: "POST",
+                conteudo: {
+                    "nome": "Projeto teste",
+                    "linguagem": "java",
+                    "horasPrevistas": 10,
+                    "horasExecutadas": 0,
+                    "cliente": clienteObj
+                }
+            }
+        );
+        exibir(resposta);
+        verificar(resposta.status == 201, "Status HTTP", "Projeto - Cadastro", 0.1, 101);
+        verificar(resposta.conteudo.linguagem == resposta.retorno.linguagem
+            && resposta.conteudo.nome == resposta.retorno.nome
+            && resposta.retorno.cliente
+            && resposta.conteudo.cliente.nome == resposta.retorno.cliente.nome
+            ,
+            "Campos cadastrados", "Projeto - Cadastro", 0.1, 101);
+        fechar();
+
+        if (!(resposta && resposta.retorno && resposta.retorno.id)) {
+            exibirErro("Sem geração de id no POST, impossível testar atualizações e recuperação");
+
+        } else {
+            id = resposta.retorno.id;
+
+
+            let conteudo = resposta.conteudo;
+
+            if (await implementado(projeto, "{id}", "GET")) {
+                resposta = await projeto.testar({ metodo: "GET", param: id });
+
+                verificar(resposta.status == 200, "Status HTTP", "Projeto - recuperar item", 0.1, 102);
+                verificar(
+                    conteudo.nome == resposta.retorno.nome
+                    && conteudo.linguagem == resposta.retorno.linguagem
+                    && conteudo.cliente
+                    && conteudo.cliente.nome == resposta.retorno.cliente.nome
+                    , "Campos", "Projeto - recuperar item", 0.1, 102);
+                fechar();
+
+                resposta = await projeto.testar({
+                    metodo: "PUT",
+                    param: id,
+                    conteudo: {
+                        "nome": null,
+                        "linguagem": "java",
+                        "horasPrevistas": 30,
+                        "horasExecutadas": 10,
+                        "cliente": clienteObj
+                    }
+
+
+                });
+                exibir(resposta);
+                verificarErro(3001, resposta, "Atualziar Campos em branco", "Projeto - Nome, linguagem e horas previstas são obrigatórios (erro: 3001)", 0.3, 3002);
+                fechar();
+
+
+
+                resposta = await projeto.testar({
+                    metodo: "PUT",
+                    param: id,
+                    conteudo: {
+                        "nome": "Projeto teste 2",
+                        "linguagem": "java",
+                        "horasPrevistas": 30,
+                        "horasExecutadas": 10,
+                        "cliente": clienteObj
+                    }
+
+
+                });
+                exibir(resposta);
+                verificarErro(3002, resposta, "Atualizar horas executadas diferentes de zero", "Horas executadas não podem ser definidas pelo cliente, gerar erro caso seja diferente de 0 (erro: 3002)", 0.3, 3002);
+                fechar();
+
+                resposta = await projeto.testar({
+                    metodo: "PUT",
+                    param: id,
+                    conteudo: {
+                        "nome": "Projeto teste 2",
+                        "linguagem": "javascript",
+                        "horasPrevistas": 30,
+                        "horasExecutadas": 0,
+                        "cliente": clienteObj
+                    }
+
+
+                });
+                exibir(resposta);
+                verificarErro(3004, resposta, "Alterar a linguagem", "Linguagem não pode ser alterada (erro: 3004)", 0.5, 3004);
+                fechar();
+
+
+                if (await implementado(projeto, "{id}", "PUT")) {
+
+
+
+
+                    let update = {
+                        "nome": "Projeto teste 2",
+                        "linguagem": "java",
+                        "horasPrevistas": 30,
+                        "horasExecutadas": 0,
+                        "cliente": clienteObj
+                    };
+                    resposta = await projeto.testar({
+                        metodo: "PUT",
+                        param: id,
+                        conteudo: update
+
+
+                    });
+                    verificar(resposta.status == 204, "Status HTTP", "Projeto - atualizar item", 0.1, 103);
+                    resposta = await projeto.testar({ metodo: "GET", param: id });
+                    exibir(resposta);
+                    verificar(update.nome == resposta.retorno.nome
+                        && update.horasPrevistas == resposta.retorno.horasPrevistas
+                        && update.cliente
+                        && update.cliente.nome == resposta.retorno.cliente.nome
+                        , "Campos", "Projeto - atualizar item", 0.1, 103);
+                    fechar();
+                }
+
+            }
+
+            resposta = await projeto.testar({ metodo: "DELETE", param: id });
+            exibir(resposta);
+            verificar(resposta.status == 204, "Status", "Projeto - deletar item", 0.1, 104);
+            resposta = await projeto.testar({ metodo: "GET", param: id });
+            verificar(resposta.status == 404, "Item apagado", "Projeto - deletar item", 0.1, 104);
+            fechar();
+
+            resposta = await projeto.testar(
+                {
+                    metodo: "POST",
+                    conteudo: {
+                        "nome": "Projeto teste",
+                        "linguagem": "java",
+                        "horasPrevistas": 10,
+                        "horasExecutadas": 0,
+                        "cliente": clienteObj
+                    }
+                }
+            );
+
+            idProjeto = resposta.retorno.id;
+
+            resposta = await projeto.testar(
+                {
+                    metodo: "POST",
+                    conteudo: {
+                        "nome": "Projeto teste horas",
+                        "linguagem": "java",
+                        "horasPrevistas": 10,
+                        "horasExecutadas": 0,
+                        "cliente": clienteObj
+                    }
+                }
+            );
+
+            idProjeto2 = resposta.retorno.id;
+
+
+        }
+
+    } else {
+        //teste para deixar o PUT
+        await implementado(projeto, "{id}", "PUT");
+    }
+
+    if (await implementado(projeto, "", "GET")) {
+        resposta = await projeto.testar({ metodo: "GET" });
+        exibir(resposta);
+        verificar(Array.isArray(resposta.retorno)
+            , "listar", "Projeto - listar itens", 0.2, 104);
+        fechar();
+    }
+
+    if (!idProjeto) {
+        exibirErro("Sem geração de id no POST do projeto, impossível testar operações da atividade");
+    } else {
+
+        ///////////////////////////////////// atividade /////////////////////
+        let atividade = new TestController("api/projetos/" + idProjeto + "/atividades/");
+
+        let idAtividade = 0;
+
+        if (await implementado(atividade, "", "POST")) {
+            resposta = await atividade.testar(
+                {
+                    metodo: "POST",
+                    conteudo: {
+                        "descricao": null,
+                        "horasPrevistas": 3,
+                        "horasExecutadas": 0
+                    }
+                }
+            );
+            exibir(resposta);
+            verificarErro(4001, resposta, "Cadastar sem descrição", "Atividade - Descrição e horas previstas são obrigatórios (erro: 4001)", 0.2, 4001);
+            fechar();
+            resposta = await atividade.testar(
+                {
+                    metodo: "POST",
+                    conteudo: {
+                        "descricao": "dfssdfsddfs",
+                        "horasPrevistas": 1,
+                        "horasExecutadas": 1
+                    }
+                }
+            );
+            exibir(resposta);
+            verificarErro(4002, resposta, "Horas executadas diferentes de zero", "Atividade - Horas executadas não podem ser definidas no cadastro, somente na atualização (erro: 4002)", 0.5, 4002);
+            fechar();
+
+
+            resposta = await atividade.testar(
+                {
+                    metodo: "POST",
+                    conteudo: {
+                        "descricao": "at 01",
+                        "horasPrevistas": 0,
+                        "horasExecutadas": 0
+                    }
+                }
+            );
+            exibir(resposta);
+            verificarErro(4001, resposta, "Sem horas previstas", "Atividade - Descrição e horas previstas são obrigatórios (erro: 4001)", 0.1, 4001);
+            fechar();
+            resposta = await atividade.testar(
+                {
+                    metodo: "POST",
+                    conteudo: {
+                        "descricao": "at 02",
+                        "horasPrevistas": 2,
+                        "horasExecutadas": 0
+                    }
+                }
+            );
+            exibir(resposta);
+            let respostaLista = await atividade.testar({ metodo: "GET" });
+            exibir(respostaLista);
+            if (Array.isArray(respostaLista.retorno) && respostaLista.retorno.length > 0) {
+                verificar(resposta.status == 201, "Status HTTP", "Atividade - Cadastro", 0.1, 101);
+                verificar(resposta.conteudo.descricao == resposta.retorno.descricao
+                    && resposta.conteudo.horasPrevistas == resposta.retorno.horasPrevistas
+                    ,
+                    "Campos cadastrados", "Atividade - Cadastro", 0.1, 101);
+            } else {
+                verificar(false, "não foi adicionado ao projeto", "Atividade - Cadastro", 0.2, 101);
+            }
+
+            fechar();
+
+            if (!(resposta && resposta.retorno && resposta.retorno.id)) {
+                exibirErro("Sem geração de id no POST da atividade, impossível testar atualizações e recuperação");
+
+            } else {
+
+                id = resposta.retorno.id;
+                idAtividade = id;
+
+                let conteudo = resposta.conteudo;
+
+                resposta = await atividade.testar(
+                    {
+                        metodo: "POST",
+                        conteudo: {
+                            "descricao": "at 02",
+                            "horasPrevistas": 2,
+                            "horasExecutadas": 0
+                        }
+                    }
+                );
+                exibir(resposta);
+                verificarErro(4004, resposta, "Descrição repetida de atividade", "Atividades não podem ter descrição repetida no mesmo projeto (erro:4004)", 0.2, 4004);
+                fechar();
+
+                resposta = await atividade.testar(
+                    {
+                        metodo: "POST",
+                        conteudo: {
+                            "descricao": "at 54654",
+                            "horasPrevistas": 9,
+                            "horasExecutadas": 0
+                        }
+                    }
+                );
+                exibir(resposta);
+                verificarErro(4003, resposta, "Cadastar com a soma maior", "soma das horas previstas das atividades não pode exceder as horas previstas do projeto", 0.2, 4004);
+                fechar();
+
+
+
+                if (await implementado(atividade, "{id}", "GET")) {
+                    resposta = await atividade.testar({ metodo: "GET", param: id });
+                    exibir(resposta);
+                    verificar(resposta.status == 200, "Status HTTP", "Atividade - recuperar item", 0.1, 102);
+                    verificar(conteudo.descricao == resposta.retorno.descricao
+                        && conteudo.horasPrevistas == resposta.retorno.horasPrevistas
+                        , "Campos", "Atividade - recuperar item", 0.1, 102);
+                    fechar();
+                    if (await implementado(atividade, "{id}", "PUT")) {
+                        let update = {
+                            "descricao": "at 02 mudou",
+                            "horasPrevistas": 2,
+                            "horasExecutadas": 2
+                        };
+
+                        resposta = await atividade.testar({
+                            metodo: "PUT",
+                            param: id,
+                            conteudo: update
+                        });
+                        exibir(resposta);
+                        verificar(resposta.status == 204, "Status HTTP", "Atividade - atualizar item", 0.1, 103);
+                        resposta = await atividade.testar({ metodo: "GET", param: id });
+                        exibir(resposta);
+                        verificar(update.descricao == resposta.retorno.descricao
+                            && update.horasPrevistas == resposta.retorno.horasPrevistas
+                            && update.horasExecutadas == resposta.retorno.horasExecutadas
+                            , "Campos", "Atividade - atualizar item", 0.1, 103);
+                        fechar();
+
+                        resposta = await atividade.testar({
+                            metodo: "PUT",
+                            param: id,
+                            conteudo: {
+                                "descricao": null,
+                                "horasPrevistas": 2,
+                                "horasExecutadas": 2
+                            }
+                        });
+                        exibir(resposta);
+                        verificarErro(4001, resposta, "Atualizar sem descrição", "Atividade - Descrição e horas previstas são obrigatórios (erro: 4001)", 0.2, 4001);
+                        fechar();
+
+                        resposta = await atividade.testar(
+                            {
+                                metodo: "POST",
+                                conteudo: {
+                                    "descricao": "at 89789786",
+                                    "horasPrevistas": 1,
+                                    "horasExecutadas": 0
+                                }
+                            }
+                        );
+                        exibir(resposta);
+
+                        id = resposta.retorno.id;
+                        resposta = await atividade.testar({
+                            metodo: "PUT",
+                            param: id,
+                            conteudo: {
+                                "descricao": "at 89789786",
+                                "horasPrevistas": 9,
+                                "horasExecutadas": 0
+                            }
+                        });
+                        exibir(resposta);
+                        verificarErro(4003, resposta, "Atualizar com a soma maior", "soma das horas previstas das atividades não pode exceder as horas previstas do projeto", 0.3, 4004);
+                        fechar();
+
+                        resposta = await atividade.testar({
+                            metodo: "PUT",
+                            param: id,
+                            conteudo: {
+                                "descricao": "at 02 mudou",
+                                "horasPrevistas": 1,
+                                "horasExecutadas": 0
+                            }
+                        });
+                        exibir(resposta);
+                        verificarErro(4004, resposta, "Atualziar descrição repetida de atividade", "Atividades não podem ter descrição repetida no mesmo projeto (erro:4004)", 0.3, 4004);
+                        fechar();
+
+
+
+
+                        let projetoBase = await projeto.testar(
+                            {
+                                metodo: "GET",
+                                param: idProjeto
+                            });
+                        let atividades = await projeto.testar(
+                            {
+                                metodo: "GET",
+                                param: idProjeto + "/atividades/"
+                            });
+
+                        exibir(projetoBase);
+                        exibir(atividades);
+                        projetoBase = projetoBase.retorno;
+                        atividades = atividades.retorno;
+                        const reducer = (accumulator, currentValue) => accumulator + currentValue.horasExecutadas;
+                        let total = atividades.reduce(reducer,0);
+                        console.log(total);
+                        if (!projetoBase.horasExecutadas) {
+                            verificar(false, "soma das horas executadas", "As horas executadas devem ser calculadas pela soma das horas executadas das atividades", 1, 103);
+                            fechar();
+                        } else { 
+                            verificar(projetoBase.horasExecutadas == total, "soma das horas executadas", "As horas executadas devem ser calculadas pela soma das horas executadas das atividades", 0.4, 103);
+                            fechar();
+                            let tmpAtividade = atividades[atividades.length - 1];
+                            tmpAtividade.horasExecutadas = 5;
+                            let updateAtividade = await projeto.testar(
+                                {
+                                    param: idProjeto + "/atividades/" + tmpAtividade.id,
+                                    metodo: "PUT",
+                                    conteudo: tmpAtividade
+                                });
+                            exibir(updateAtividade);
+
+                            projetoBase = await projeto.testar(
+                                {
+                                    metodo: "GET",
+                                    param: idProjeto
+                                });
+                            atividades = await projeto.testar(
+                                {
+                                    metodo: "GET",
+                                    param: idProjeto + "/atividades/"
+                                });
+
+                            exibir(projetoBase);
+                            exibir(atividades);
+                            projetoBase = projetoBase.retorno;
+                            atividades = atividades.retorno;
+                            const reducer = (accumulator, currentValue) => accumulator + currentValue.horasExecutadas;
+                            total = atividades.reduce(reducer,0);
+                            teste = total > 0 && projetoBase.horasExecutadas == total;
+                            verificar(teste, "soma das horas executadas depois de uma atualização", "As horas executadas devem ser calculadas pela soma das horas executadas das atividades", 0.3, 103);
+                            fechar();
+
+                            let deleteAtividade = await projeto.testar(
+                                {
+                                    param: idProjeto + "/atividades/" + tmpAtividade.id,
+                                    metodo: "DELETE"
+                                });
+                            exibir(deleteAtividade);
+
+                            projetoBase = await projeto.testar(
+                                {
+                                    metodo: "GET",
+                                    param: idProjeto
+                                });
+                            atividades = await projeto.testar(
+                                {
+                                    metodo: "GET",
+                                    param: idProjeto + "/atividades/"
+                                });
+
+                            exibir(projetoBase);
+                            exibir(atividades);
+                            projetoBase = projetoBase.retorno;
+                            atividades = atividades.retorno;
+                            total = atividades.reduce(reducer,0);
+                            teste = total > 0 && projetoBase.horasExecutadas == total;
+                            verificar(teste, "soma das horas executadas depois de uma exclusão", "As horas executadas devem ser calculadas pela soma das horas executadas das atividades", 0.3, 103);
+                            fechar();
+
+
+                            //let atividade = new TestController("api/projetos/"+idProjeto+"/atividades/");
+
+                        }
+                    }
+
+                    }
+
+                    resposta = await atividade.testar(
+                        {
+                            metodo: "POST",
+                            conteudo: {
+                                "descricao": "at 02 asdas",
+                                "horasPrevistas": 1,
+                                "horasExecutadas": 0
+                            }
+                        }
+                    );
+
+                    id = resposta.retorno.id;
+                    exibir(resposta);
+                    resposta = await atividade.testar({ metodo: "DELETE", param: id });
+                    exibir(resposta);
+                    verificar(resposta.status == 204, "Status", "Atividade - deletar item", 0.1, 104);
+                    resposta = await atividade.testar({ metodo: "GET", param: id });
+                    verificar(resposta.status == 404, "Item apagado", "Atividade - deletar item", 0.1, 104);
+                    fechar();
+                }
+
+            } else {
+                //teste para deixar o PUT
+                await implementado(atividade, "{id}", "PUT");
+            }
+
+            if (await implementado(atividade, "", "GET")) {
+                resposta = await atividade.testar({ metodo: "GET" });
+                exibir(resposta);
+                verificar(Array.isArray(resposta.retorno)
+                    , "listar", "Atividade - listar itens", 0.2, 104);
+            }
+
+
+
+        }
+
+
+        pronto();
+
+    }
+
+
+
+document.addEventListener("DOMContentLoaded",() => {
+                let base = document.getElementById("base");
+                teste(() => exibirNota());
+            });
+        </script>
+    </head>
+    <body>
+        <pre id="base"></pre>
+        <div id='div'></div> 
+    </body>
+</html>
