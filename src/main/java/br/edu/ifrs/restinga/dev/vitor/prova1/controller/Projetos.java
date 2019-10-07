@@ -31,6 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class Projetos {
 
+     int ativSoma;
+     int execSoma;
+    
     @Autowired
     ProjetoDAO projetoDAO;
 
@@ -149,7 +152,7 @@ public class Projetos {
     @RequestMapping(path = "/projetos/{idProjeto}/atividades/", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     public Atividade cadastrarAtividade(@PathVariable int idProjeto, @RequestBody Atividade atividade) {
-        int ativSoma = 0;
+        ativSoma = 0;
         Projeto projetoBanco = this.buscar(idProjeto);
         atividade.setId(0);
         validaAtividade(atividade);
@@ -177,9 +180,10 @@ public class Projetos {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void atualizarAtividade(@PathVariable int idProjeto, @PathVariable int id, @RequestBody Atividade atividade) {
         Projeto projetoBanco = this.buscar(idProjeto);
-        int ativSoma = 0;
-        int ExecSoma = 0;
         
+        ativSoma = 0;
+        execSoma = 0;
+     
         if (atividadeDAO.existsById(id)) {
             atividade.setId(id);
             validaAtividade(atividade);
@@ -195,9 +199,9 @@ public class Projetos {
             }
             if(projetoBanco.getAtividade() != null) {
                 for(Atividade atividadeBanco : projetoBanco.getAtividade()) {
-                    ExecSoma = ExecSoma + atividadeBanco.getHorasExecutadas();
-                    ExecSoma = ExecSoma + atividade.getHorasExecutadas();
-                    projetoBanco.setHorasExecutadas(ExecSoma);
+                    execSoma = execSoma + atividadeBanco.getHorasExecutadas();
+                    execSoma = execSoma + atividade.getHorasExecutadas();
+                    projetoBanco.setHorasExecutadas(execSoma);
                 }
                 
             }
